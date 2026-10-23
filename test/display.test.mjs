@@ -37,18 +37,26 @@ test('badge text is centered using visible ink bounds, including negative temper
       actualBoundingBoxAscent: ascent, actualBoundingBoxDescent: descent}, 26);
     assert.equal((box.textX - left + box.textX + right) / 2, 0);
     assert.equal((box.textY - ascent + box.textY + descent) / 2, 0);
-    assert.ok(box.height >= ascent + descent + 6);
+    assert.equal((box.width - left - right) / 2, 5);
+    assert.equal((box.height - ascent - descent) / 2, 5);
   }
 });
 
 test('badge renderer skips missing and hidden points and restores canvas state', () => {
   const drawn = [];
+  const fills = [];
+  const strokes = [];
   const ctx = {save() {}, restore() {drawn.push('restore');}, beginPath() {}, roundRect(...args) {drawn.push(args);},
-    fill() {}, fillText(text) {drawn.push(text);}, measureText() {return {width: 40, actualBoundingBoxAscent: 20, actualBoundingBoxDescent: 0};}};
+    fill() {fills.push(this.fillStyle);}, stroke() {strokes.push([this.strokeStyle, this.lineWidth]);},
+    fillText(text) {drawn.push(text);}, measureText() {return {width: 40, actualBoundingBoxAscent: 20, actualBoundingBoxDescent: 0};}};
   const chart = {ctx, data: {datasets: [{data: [9, null, -12], borderColor: 'orange'}, {data: [1]}]},
     isDatasetVisible: index => index === 0, getDatasetMeta: () => ({data: [{x: 30, y: 40}, {x: 90, y: 40}, {x: 150, y: 40}]})};
-  temperatureBadges.afterDatasetsDraw(chart, {}, {enabled: true, fontSize: 26, fontFamily: 'sans-serif', textColor: '#000'});
+  temperatureBadges.afterDatasetsDraw(chart, {}, {enabled: true, fontSize: 26, fontFamily: 'Manrope', fontWeight: 700, backgroundColor: '#553300', textColor: '#fff'});
   assert.deepEqual(drawn.filter(value => typeof value === 'string'), ['9°', '-12°', 'restore']);
   assert.equal(drawn[0][4], 4);
-  assert.equal(ctx.fillStyle, '#000');
+  assert.equal(ctx.fillStyle, '#fff');
+  assert.deepEqual(fills, ['#553300', '#553300']);
+  assert.deepEqual(strokes, [['orange', 1.5], ['orange', 1.5]]);
+  assert.equal(chart.data.datasets[0].borderColor, 'orange');
+  assert.equal(ctx.font, '700 26px Manrope');
 });

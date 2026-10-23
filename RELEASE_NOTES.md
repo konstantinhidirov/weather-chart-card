@@ -1,5 +1,17 @@
-Rounded, filled temperature badges now use black text and center the visible glyphs vertically and horizontally. Increase `forecast.labels_font_size` to suit the viewing distance; 26 works well for a compact wall-panel chart.
+Temperature badges now support the card's CSS font family, explicit font selection and font weight. `forecast.labels_font_family` defaults to `inherit` and reads the rendered `ha-card` font; `forecast.labels_font_weight` defaults to 700. Web fonts trigger another draw after loading so the visible glyphs stay centered. The font must already be loaded by the dashboard.
 
-Enable `forecast.precipitation_indicator: true` for full-height precipitation bands. Rain, snow, sleet, hail, and positive precipitation amounts remain visible even when the amount is missing or tiny. Tooltips retain the weather condition and actual service amount; band height is never presented as millimeters. The option is available on the visual editor's Forecast page and defaults to false, preserving the original amount/probability modes. Style2 retains its unboxed temperature labels.
+Style1 badges have equal 5px padding around the visible text and a 1.5px outline matching the temperature line. `forecast.labels_background_color` controls their fill independently of the line and outline. `forecast.chart_text_color` controls text color. Font family, weight and badge fill are available in the visual editor. Style2 keeps its unboxed labels.
 
-The card type and resource filename remain `custom:weather-chart-card` and `weather-chart-card.js` for existing dashboard compatibility.
+Example wall-panel settings:
+
+```yaml
+forecast:
+  labels_font_size: 26
+  labels_font_family: Manrope
+  labels_font_weight: 700
+  labels_background_color: '#402600'
+  chart_text_color: '#ffffff'
+  precipitation_indicator: true
+```
+
+The full-height precipitation indicator from v2.5.0 remains available. The card type and resource filename stay `custom:weather-chart-card` and `weather-chart-card.js`; existing dashboard options are preserved. Reload the browser after updating the resource.

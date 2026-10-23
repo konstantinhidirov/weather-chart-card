@@ -744,6 +744,27 @@ class WeatherChartCardEditor extends LitElement {
                 @change="${(e) => this._valueChanged(e, 'forecast.labels_font_size')}"
               ></ha-textfield>
               </div>
+            <div class="flex-container">
+              <ha-textfield
+                label="Labels Font Family (inherit uses the card font)"
+                .value="${forecastConfig.labels_font_family || 'inherit'}"
+                @change="${(e) => this._valueChanged(e, 'forecast.labels_font_family')}"
+              ></ha-textfield>
+              <ha-textfield
+                label="Labels Font Weight (400 normal, 700 bold)"
+                type="number"
+                min="100"
+                max="900"
+                step="100"
+                .value="${forecastConfig.labels_font_weight || 700}"
+                @change="${(e) => this._valueChanged(e, 'forecast.labels_font_weight')}"
+              ></ha-textfield>
+            </div>
+            <ha-textfield
+              label="Temperature Badge Background (empty uses the line color)"
+              .value="${forecastConfig.labels_background_color || ''}"
+              @change="${(e) => this._valueChanged(e, 'forecast.labels_background_color')}"
+            ></ha-textfield>
 	    <div class="flex-container">
               <ha-textfield
                 label="Chart height"

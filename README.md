@@ -2,7 +2,9 @@
 
 Maintained fork of [mlamberts78/weather-chart-card](https://github.com/mlamberts78/weather-chart-card), with readable wall-panel temperature badges and an optional precipitation indicator. Original MIT license and author attribution are preserved.
 
-Temperature badges in `style1` have solid fills matching the temperature lines, rounded corners and black text centered by its visible bounds. Set `forecast.labels_font_size: 26` for a larger wall-panel font. `style2` keeps its original unboxed labels; `forecast.chart_text_color` can override text color.
+Temperature badges in `style1` have fills and outlines matching the temperature lines, rounded corners and text centered by its visible bounds, with equal 5px padding on all sides. Set `forecast.labels_font_size: 26` for a larger wall-panel font. `forecast.labels_background_color` can change the fill independently of the outline; `forecast.chart_text_color` overrides the default black text. `style2` keeps its original unboxed labels.
+
+Labels use the card's computed CSS font family by default (`forecast.labels_font_family: inherit`), including a family applied to `ha-card` with card-mod. Set `forecast.labels_font_family: Manrope` to select a family explicitly and `forecast.labels_font_weight: 700` for bold (the default), or `400` for regular. The font must already be loaded by your dashboard; the card does not download fonts. A completed web-font load triggers another draw so glyph centering uses the final font metrics. Both settings are available on the visual editor's Forecast page.
 
 Set `forecast.precipitation_indicator: true` to show full-height precipitation bands regardless of amount. Wet weather conditions show a band even if the service omits precipitation amounts; a positive amount also shows a band. Missing data alone does not assert precipitation. The tooltip uses the condition and actual amount. With this option disabled (the default), the original rainfall/probability modes apply. The visual editor exposes the switch under Forecast.
 
@@ -84,6 +86,9 @@ In HACS, add `konstantinhidirov/weather-chart-card` as a custom **Dashboard** re
 | precipitation_indicator | boolean | false | Full-height precipitation bands based on condition or a positive amount; overrides the amount/probability display without changing service data. |
 | show_probability     | boolean | false                    | Also show probability value when precipitation_type = rainfall. (Only when available)              |
 | labels_font_size     | number  | 11                       | Font size for temperature and precipitation labels.                                                |
+| labels_font_family   | string  | inherit                  | Font family for temperature and precipitation labels; inherit reads the rendered card's CSS family. |
+| labels_font_weight   | number  | 700                      | Label weight: 400 regular, 700 bold; the selected font must support the weight. |
+| labels_background_color | string | none | Optional fill color for style1 temperature badges, independent of the temperature line color. Empty uses the line color. |
 | precip_bar_size      | number  | 100                      | Adjusts the thickness of precipitation bars (1-100).                                               |
 | temperature1_color   | string  | rgba(255, 152, 0, 1.0)   | Temperature first line chart color.                                                                |
 | temperature2_color   | string  | rgba(68, 115, 158, 1.0)  | Temperature second line chart color.                                                               |

@@ -1,11 +1,11 @@
 // Measure the visible glyphs: a CSS line box is not the visual text center.
-export function badgeGeometry(metrics, fontSize, padding = 3) {
+export function badgeGeometry(metrics, fontSize, padding = 5) {
   const ascent = metrics.actualBoundingBoxAscent ?? fontSize * 0.75;
   const descent = metrics.actualBoundingBoxDescent ?? fontSize * 0.2;
   const left = metrics.actualBoundingBoxLeft ?? 0;
   const right = metrics.actualBoundingBoxRight ?? metrics.width;
   return {
-    width: Math.max(metrics.width, left + right) + 10,
+    width: left + right + padding * 2,
     height: ascent + descent + padding * 2,
     textX: (left - right) / 2,
     textY: (ascent - descent) / 2,
@@ -19,7 +19,7 @@ export const temperatureBadges = {
     const {ctx} = chart;
     const fontSize = Number(options.fontSize);
     ctx.save();
-    ctx.font = `${fontSize}px ${options.fontFamily}`;
+    ctx.font = `${options.fontWeight || 700} ${fontSize}px ${options.fontFamily}`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
     [0, 1].forEach(index => {
@@ -36,8 +36,11 @@ export const temperatureBadges = {
         const radius = Math.min(4, box.height / 2);
         ctx.beginPath();
         ctx.roundRect(x, y, box.width, box.height, radius);
-        ctx.fillStyle = dataset.borderColor;
+        ctx.fillStyle = options.backgroundColor || dataset.borderColor;
         ctx.fill();
+        ctx.strokeStyle = dataset.borderColor;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
         ctx.fillStyle = options.textColor;
         ctx.fillText(text, point.x + box.textX, point.y + box.textY);
       });

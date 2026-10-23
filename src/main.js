@@ -56,6 +56,8 @@ static getStubConfig(hass, unusedEntities, allEntities) {
       precipitation_indicator: false,
       show_probability: false,
       labels_font_size: '11',
+      labels_font_family: 'inherit',
+      labels_font_weight: 700,
       precip_bar_size: '100',
       style: 'style1',
       show_wind_forecast: true,
@@ -106,6 +108,8 @@ setConfig(config) {
       show_probability: false,
       precipitation_indicator: false,
       labels_font_size: 11,
+      labels_font_family: 'inherit',
+      labels_font_weight: 700,
       chart_height: 180,
       precip_bar_size: 100,
       style: 'style1',
@@ -575,6 +579,22 @@ drawChart({ config, language, weather, forecastItems } = this) {
   ];
 
   const chart_text_color = (config.forecast.chart_text_color === 'auto') ? textColor : config.forecast.chart_text_color;
+  // Canvas does not inherit CSS fonts. Read the rendered card's computed family.
+  const fontHost = this.renderRoot.querySelector('ha-card') || this;
+  const inheritedFamily = getComputedStyle(fontHost).fontFamily || Chart.defaults.font.family;
+  const labelFontFamily = !config.forecast.labels_font_family || config.forecast.labels_font_family === 'inherit'
+    ? inheritedFamily : config.forecast.labels_font_family;
+  const labelFontWeight = config.forecast.labels_font_weight || 700;
+  const labelFontSpec = `${labelFontWeight} ${Number(config.forecast.labels_font_size)}px ${labelFontFamily}`;
+  // Web fonts can arrive after the first canvas draw; measure the glyphs again then.
+  if (document.fonts && this._requestedForecastFont !== labelFontSpec) {
+    this._requestedForecastFont = labelFontSpec;
+    document.fonts.load(labelFontSpec, '0123456789-°').then(fonts => {
+      if (fonts.length && this.isConnected && this._requestedForecastFont === labelFontSpec) {
+        this.drawChart();
+      }
+    }).catch(() => {});
+  }
 
   if (config.forecast.style !== 'style2') {
     datasets[0].datalabels = {display: false};
@@ -596,6 +616,8 @@ drawChart({ config, language, weather, forecastItems } = this) {
       color: chart_text_color || config.forecast.temperature1_color,
       font: {
         size: parseInt(config.forecast.labels_font_size) + 1,
+        family: labelFontFamily,
+        weight: labelFontWeight,
         lineHeight: 0.7,
       },
     };
@@ -614,6 +636,8 @@ drawChart({ config, language, weather, forecastItems } = this) {
       color: chart_text_color || config.forecast.temperature2_color,
       font: {
         size: parseInt(config.forecast.labels_font_size) + 1,
+        family: labelFontFamily,
+        weight: labelFontWeight,
         lineHeight: 0.7,
       },
     };
@@ -711,7 +735,9 @@ drawChart({ config, language, weather, forecastItems } = this) {
         temperatureBadges: {
           enabled: config.forecast.style !== 'style2',
           fontSize: config.forecast.labels_font_size,
-          fontFamily: Chart.defaults.font.family,
+          fontFamily: labelFontFamily,
+          fontWeight: labelFontWeight,
+          backgroundColor: config.forecast.labels_background_color || null,
           textColor: chart_text_color || '#000000',
         },
         legend: {
@@ -726,6 +752,8 @@ drawChart({ config, language, weather, forecastItems } = this) {
           color: chart_text_color || textColor,
           font: {
             size: config.forecast.labels_font_size,
+            family: labelFontFamily,
+            weight: labelFontWeight,
             lineHeight: 0.7,
           },
           formatter: function (value, context) {
