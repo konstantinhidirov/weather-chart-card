@@ -1,7 +1,10 @@
 <h1 align="center">Weather Chart Card</h1>
 
-# No Longer Maintained
-This repository is no longer maintained. Feel free to fork it if you find it useful.
+Maintained fork of [mlamberts78/weather-chart-card](https://github.com/mlamberts78/weather-chart-card), with readable wall-panel temperature badges and an optional precipitation indicator. Original MIT license and author attribution are preserved.
+
+Temperature badges in `style1` have solid fills matching the temperature lines, rounded corners and black text centered by its visible bounds. Set `forecast.labels_font_size: 26` for a larger wall-panel font. `style2` keeps its original unboxed labels; `forecast.chart_text_color` can override text color.
+
+Set `forecast.precipitation_indicator: true` to show full-height precipitation bands regardless of amount. Wet weather conditions show a band even if the service omits precipitation amounts; a positive amount also shows a band. Missing data alone does not assert precipitation. The tooltip uses the condition and actual amount. With this option disabled (the default), the original rainfall/probability modes apply. The visual editor exposes the switch under Forecast.
 
 [![Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/mlamberts7I)
 [![PayPal](https://img.shields.io/badge/Donate-PayPal-blue?logo=paypal)](https://www.paypal.com/donate/?hosted_button_id=HZUUW64FRM2J2)
@@ -19,8 +22,7 @@ This repository is no longer maintained. Feel free to fork it if you find it use
 
 ### HACS
 
-This card is available in HACS (Home Assistant Community Store).
-HACS is a third party community store and is not included in Home Assistant out of the box.
+In HACS, add `konstantinhidirov/weather-chart-card` as a custom **Dashboard** repository, then download the latest release. If replacing the upstream card, remove that HACS package first because both use the same resource path and custom element name. Keep your dashboard card configurations. Ensure there is exactly one module resource for `/hacsfiles/weather-chart-card/weather-chart-card.js`, then reload your browser.
 
 #### Configuration variables:
 
@@ -79,6 +81,7 @@ HACS is a third party community store and is not included in Home Assistant out 
 | Name                 | Type    | Default                  | Description                                                                                        |
 | -------------------- | ------- | -------------------------|--------------------------------------------------------------------------------------------------- |
 | precipitation_type   | string  | rainfall                 | Show precipitation in 'rainfall' or 'probability'.                                                 |
+| precipitation_indicator | boolean | false | Full-height precipitation bands based on condition or a positive amount; overrides the amount/probability display without changing service data. |
 | show_probability     | boolean | false                    | Also show probability value when precipitation_type = rainfall. (Only when available)              |
 | labels_font_size     | number  | 11                       | Font size for temperature and precipitation labels.                                                |
 | precip_bar_size      | number  | 100                      | Adjusts the thickness of precipitation bars (1-100).                                               |

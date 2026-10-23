@@ -11,6 +11,8 @@ import './weather-chart-card-editor.js';
 import { property } from 'lit/decorators.js';
 import {Chart, registerables} from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import {precipitationValue, indicatorTooltip} from './precipitation.mjs';
+import {temperatureBadges} from './temperature-badges.mjs';
 Chart.register(...registerables, ChartDataLabels);
 
 class WeatherChartCard extends LitElement {
@@ -51,6 +53,7 @@ static getStubConfig(hass, unusedEntities, allEntities) {
     autoscroll: false,
     forecast: {
       precipitation_type: 'rainfall',
+      precipitation_indicator: false,
       show_probability: false,
       labels_font_size: '11',
       precip_bar_size: '100',
@@ -101,6 +104,7 @@ setConfig(config) {
     forecast: {
       precipitation_type: 'rainfall',
       show_probability: false,
+      precipitation_indicator: false,
       labels_font_size: 11,
       chart_height: 180,
       precip_bar_size: 100,
@@ -477,7 +481,7 @@ drawChart({ config, language, weather, forecastItems } = this) {
   const data = this.computeForecastData();
 
   var style = getComputedStyle(document.body);
-  var backgroundColor = style.getPropertyValue('--card-background-color');
+  const indicator = config.forecast.precipitation_indicator === true;
   var textColor = style.getPropertyValue('--primary-text-color');
   var dividerColor = style.getPropertyValue('--divider-color');
   const canvas = this.renderRoot.querySelector('#forecastChart');
@@ -490,7 +494,9 @@ drawChart({ config, language, weather, forecastItems } = this) {
 
   let precipMax;
 
-  if (config.forecast.precipitation_type === 'probability') {
+  if (indicator) {
+    precipMax = 1;
+  } else if (config.forecast.precipitation_type === 'probability') {
     precipMax = 100;
   } else {
     if (config.forecast.type === 'hourly') {
@@ -536,7 +542,7 @@ drawChart({ config, language, weather, forecastItems } = this) {
       categoryPercentage: 1.0,
       datalabels: {
         display: function (context) {
-          return context.dataset.data[context.dataIndex] > 0 ? 'true' : false;
+          return !indicator && context.dataset.data[context.dataIndex] > 0;
         },
       formatter: function (value, context) {
         const precipitationType = config.forecast.precipitation_type;
@@ -569,6 +575,11 @@ drawChart({ config, language, weather, forecastItems } = this) {
   ];
 
   const chart_text_color = (config.forecast.chart_text_color === 'auto') ? textColor : config.forecast.chart_text_color;
+
+  if (config.forecast.style !== 'style2') {
+    datasets[0].datalabels = {display: false};
+    datasets[1].datalabels = {display: false};
+  }
 
   if (config.forecast.style === 'style2') {
     datasets[0].datalabels = {
@@ -610,6 +621,7 @@ drawChart({ config, language, weather, forecastItems } = this) {
 
   this.forecastChart = new Chart(ctx, {
     type: 'bar',
+    plugins: [temperatureBadges],
     data: {
       labels: data.dateTime,
       datasets: datasets,
@@ -684,6 +696,7 @@ drawChart({ config, language, weather, forecastItems } = this) {
         },
         PrecipAxis: {
           position: 'right',
+          ...(indicator ? {min: 0, max: 1} : {}),
           suggestedMax: precipMax,
           grid: {
             display: false,
@@ -695,11 +708,17 @@ drawChart({ config, language, weather, forecastItems } = this) {
         },
       },
       plugins: {
+        temperatureBadges: {
+          enabled: config.forecast.style !== 'style2',
+          fontSize: config.forecast.labels_font_size,
+          fontFamily: Chart.defaults.font.family,
+          textColor: chart_text_color || '#000000',
+        },
         legend: {
           display: false,
         },
         datalabels: {
-          backgroundColor: backgroundColor,
+          backgroundColor: style.getPropertyValue('--card-background-color'),
           borderColor: context => context.dataset.backgroundColor,
           borderRadius: 0,
           borderWidth: 1.5,
@@ -728,11 +747,19 @@ drawChart({ config, language, weather, forecastItems } = this) {
                 hour12: config.use_12hour_format,
               });
             },
-    label: function (context) {
+    label: (context) => {
       var label = context.dataset.label;
       var value = context.formattedValue;
-      var probability = data.forecast[context.dataIndex].precipitation_probability;
+      const item = this.computeForecastData().forecast[context.dataIndex];
+      var probability = item.precipitation_probability;
       var unit = context.datasetIndex === 2 ? precipUnit : tempUnit;
+
+      if (indicator && context.datasetIndex === 2) {
+        const condition = locale[language] && locale[language][item.condition]
+          || locale.en[item.condition] || item.condition;
+        const amountUnit = lengthUnit === 'km' ? (locale[language] || locale.en).units.mm : (locale[language] || locale.en).units.in;
+        return indicatorTooltip(item, label, condition, amountUnit);
+      }
 
       if (config.forecast.precipitation_type === 'rainfall' && context.datasetIndex === 2 && config.forecast.show_probability && probability !== undefined && probability !== null) {
         return label + ': ' + value + ' ' + precipUnit + ' / ' + Math.round(probability) + '%';
@@ -748,7 +775,9 @@ drawChart({ config, language, weather, forecastItems } = this) {
 }
 
 computeForecastData({ config, forecastItems } = this) {
-  var forecast = this.forecasts ? this.forecasts.slice(0, forecastItems) : [];
+  const cutoff = (config.forecast.type === 'hourly' ? 1 : 24) * 60 * 60 * 1000;
+  var forecast = (this.forecasts || []).slice(0, forecastItems)
+    .filter(item => !config.autoscroll || new Date() - new Date(item.datetime) <= cutoff);
   var roundTemp = config.forecast.round_temp == true;
   var dateTime = [];
   var tempHigh = [];
@@ -757,12 +786,6 @@ computeForecastData({ config, forecastItems } = this) {
 
   for (var i = 0; i < forecast.length; i++) {
     var d = forecast[i];
-    if (config.autoscroll) {
-      const cutoff = (config.forecast.type === 'hourly' ? 1 : 24) * 60 * 60 * 1000;
-      if (new Date() - new Date(d.datetime) > cutoff) {
-        continue;
-      }
-    }
     dateTime.push(d.datetime);
     tempHigh.push(d.temperature);
     if (typeof d.templow !== 'undefined') {
@@ -775,11 +798,7 @@ computeForecastData({ config, forecastItems } = this) {
         tempLow[i] = Math.round(tempLow[i]);
       }
     }
-    if (config.forecast.precipitation_type === 'probability') {
-      precip.push(d.precipitation_probability);
-    } else {
-      precip.push(d.precipitation);
-    }
+    precip.push(precipitationValue(d, config.forecast));
   }
 
   return {
@@ -1397,5 +1416,5 @@ window.customCards.push({
   name: "Weather Chart Card",
   description: "A custom weather card with chart.",
   preview: true,
-  documentationURL: "https://github.com/mlamberts78/weather-chart-card",
+  documentationURL: "https://github.com/konstantinhidirov/weather-chart-card",
 });

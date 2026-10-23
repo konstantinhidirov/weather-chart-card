@@ -698,6 +698,13 @@ class WeatherChartCardEditor extends LitElement {
               Disable Chart Animation
             </label>
           </div>
+          <div class="switch-container">
+            <ha-switch
+              @change="${(e) => this._valueChanged(e, 'forecast.precipitation_indicator')}"
+              .checked="${forecastConfig.precipitation_indicator === true}"
+            ></ha-switch>
+            <label class="switch-label">Precipitation indicator (full-height bars, independent of amount)</label>
+          </div>
 	  <div class="textfield-container">
           <ha-select
             naturalMenuWidth
@@ -711,7 +718,7 @@ class WeatherChartCardEditor extends LitElement {
             <ha-list-item .value=${'rainfall'}>Rainfall</ha-list-item>
             <ha-list-item .value=${'probability'}>Probability</ha-list-item>
           </ha-select>
-         <div class="switch-container" ?hidden=${forecastConfig.precipitation_type !== 'rainfall'}>
+         <div class="switch-container" ?hidden=${forecastConfig.precipitation_indicator === true || forecastConfig.precipitation_type !== 'rainfall'}>
              <ha-switch
                @change="${(e) => this._valueChanged(e, 'forecast.show_probability')}"
                .checked="${forecastConfig.show_probability !== false}"
