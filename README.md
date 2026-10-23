@@ -26,6 +26,8 @@ Set `forecast.precipitation_indicator: true` to show full-height precipitation b
 
 In HACS, add `konstantinhidirov/weather-chart-card` as a custom **Dashboard** repository, then download the latest release. If replacing the upstream card, remove that HACS package first because both use the same resource path and custom element name. Keep your dashboard card configurations. Ensure there is exactly one module resource for `/hacsfiles/weather-chart-card/weather-chart-card.js`, then reload your browser.
 
+HACS installs the prebuilt files from `dist/` at the selected release tag. Releases intentionally have no separate JavaScript asset: this avoids oversized HTTP headers on GitHub's asset redirects. CI builds and verifies the committed bundle before publishing a release.
+
 #### Configuration variables:
 
 ##### Card options

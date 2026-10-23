@@ -1,3 +1,5 @@
+This release keeps the badge appearance from v2.5.1 and fixes HACS delivery: the verified bundle is downloaded from `dist/` at the release tag. No separate JavaScript release asset is published, avoiding GitHub's oversized redirect headers that can fail in Home Assistant's HTTP client.
+
 Temperature badges now support the card's CSS font family, explicit font selection and font weight. `forecast.labels_font_family` defaults to `inherit` and reads the rendered `ha-card` font; `forecast.labels_font_weight` defaults to 700. Web fonts trigger another draw after loading so the visible glyphs stay centered. The font must already be loaded by the dashboard.
 
 Style1 badges have equal 5px padding around the visible text and a 1.5px outline matching the temperature line. `forecast.labels_background_color` controls their fill independently of the line and outline. `forecast.chart_text_color` controls text color. Font family, weight and badge fill are available in the visual editor. Style2 keeps its unboxed labels.
